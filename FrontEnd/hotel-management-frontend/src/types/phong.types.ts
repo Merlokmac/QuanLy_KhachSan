@@ -5,6 +5,8 @@ export interface Phong {
   TrangThai: 'Trống' | 'Đang ở' | 'Bảo trì';
   MaLoaiPhong: number;
   LoaiPhong?: LoaiPhong;
+  TenLoaiPhong?: string;
+  GiaPhong?: number;
 }
 
 export interface LoaiPhong {

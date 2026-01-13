@@ -24,15 +24,9 @@ export interface DatPhong {
   MaKH: number;
   NgayNhan: string;
   NgayTra: string;
-  TrangThai: 'Đã đặt' | 'Đang ở' | 'Hoàn thành' | 'Đã hủy';
-  KhachHang?: KhachHang;
-  Phong?: {
-    SoPhong: string;
-    LoaiPhong: {
-      TenLoaiPhong: string;
-      GiaPhong: number;
-    };
-  };
+  TrangThai: 'Đã đặt' | 'Đang ở' | 'Hoàn thành' | 'Đã huỷ';
+  TenKhachHang?: string;
+  SoPhong?: string;
 }
 
 export interface DatPhongFormData {

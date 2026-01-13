@@ -32,9 +32,19 @@ export const phongApi = {
     await axiosInstance.delete(`/api/phong/${id}`);
   },
 
-  // Lấy danh sách loại phòng
-  getLoaiPhong: async (): Promise<LoaiPhong[]> => {
-    const response = await axiosInstance.get<ApiResponse<LoaiPhong[]>>('/api/phong/loai-phong');
-    return response.data.data || [];
+  // Lấy danh sách loại phòng (extract từ phòng)
+  getLoaiPhongList: async (): Promise<LoaiPhong[]> => {
+    const phongs = await phongApi.getAll();
+    const loaiPhongMap = new Map<number, LoaiPhong>();
+    phongs.forEach(p => {
+      if (p.LoaiPhong && !loaiPhongMap.has(p.MaLoaiPhong)) {
+        loaiPhongMap.set(p.MaLoaiPhong, {
+          MaLoaiPhong: p.MaLoaiPhong,
+          TenLoaiPhong: p.LoaiPhong.TenLoaiPhong,
+          GiaPhong: p.LoaiPhong.GiaPhong,
+        });
+      }
+    });
+    return Array.from(loaiPhongMap.values());
   },
 };

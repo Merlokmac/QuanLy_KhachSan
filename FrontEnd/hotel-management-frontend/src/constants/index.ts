@@ -26,7 +26,7 @@ export const BOOKING_STATUS = {
   DA_DAT: 'Đã đặt',
   DANG_O: 'Đang ở',
   HOAN_THANH: 'Hoàn thành',
-  DA_HUY: 'Đã hủy',
+  DA_HUY: 'Đã huỷ',
 };
 
 // Routes

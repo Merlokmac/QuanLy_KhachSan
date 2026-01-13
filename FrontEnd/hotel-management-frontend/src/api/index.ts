@@ -67,6 +67,10 @@ export const datPhongApi = {
     const response = await axiosInstance.put<ApiResponse<DatPhong>>(`/api/datphong/${id}/checkout`);
     return response.data.data!;
   },
+
+  huy: async (id: number): Promise<void> => {
+    await axiosInstance.put(`/api/datphong/${id}/huy`);
+  },
 };
 
 // Dịch vụ API (chỉ admin)
