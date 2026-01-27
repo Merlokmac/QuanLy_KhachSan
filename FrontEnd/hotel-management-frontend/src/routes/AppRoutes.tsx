@@ -1,67 +1,67 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
+import { ProtectedRoute } from './ProtectedRoute';
+import { ROUTES, ROLES } from '../constants';
 import { useAuth } from '../hooks/useAuth';
-import { ROUTES } from '../constants';
 
-// Pages
 import LoginPage from '../pages/LoginPage';
-import Layout from '../components/common/Layout';
-import DashboardPage from '../pages/DashboardPage';
-import PhongPage from '../pages/PhongPage';
-import KhachHangPage from '../pages/KhachHangPage';
-import DatPhongPage from '../pages/DatPhongPage';
-import DichVuPage from '../pages/DichVuPage';
-import ThongKePage from '../pages/ThongKePage';
-import ProtectedRoute from './ProtectedRoute';
+import RegisterPage from '../pages/RegisterPage';
+import ManagerDashboard from '../pages/ManagerDashboard';
+import ReceptionistDashboard from '../pages/ReceptionistDashboard';
+import CustomerDashboard from '../pages/CustomerDashboard';
 
-const AppRoutes: React.FC = () => {
-  const { isAuthenticated } = useAuth();
+export const AppRoutes: React.FC = () => {
+  const { isAuthenticated, user } = useAuth();
+
+  const getDefaultRoute = () => {
+    if (!isAuthenticated || !user) return ROUTES.LOGIN;
+    
+    switch (user.RoleID) {
+      case ROLES.MANAGER:
+        return ROUTES.MANAGER_DASHBOARD;
+      case ROLES.RECEPTIONIST:
+        return ROUTES.RECEPTIONIST_DASHBOARD;
+      case ROLES.CUSTOMER:
+        return ROUTES.CUSTOMER_DASHBOARD;
+      default:
+        return ROUTES.LOGIN;
+    }
+  };
 
   return (
     <Routes>
-      {/* Public routes */}
-      <Route
-        path={ROUTES.LOGIN}
-        element={isAuthenticated ? <Navigate to={ROUTES.DASHBOARD} replace /> : <LoginPage />}
-      />
+      <Route path={ROUTES.LOGIN} element={<LoginPage />} />
+      <Route path={ROUTES.REGISTER} element={<RegisterPage />} />
 
-      {/* Protected routes */}
       <Route
-        path="/"
+        path={ROUTES.MANAGER_DASHBOARD}
         element={
-          <ProtectedRoute>
-            <Layout />
+          <ProtectedRoute allowedRoles={[ROLES.MANAGER]}>
+            <ManagerDashboard />
           </ProtectedRoute>
         }
-      >
-        <Route index element={<DashboardPage />} />
-        <Route path={ROUTES.PHONG} element={<PhongPage />} />
-        <Route path={ROUTES.KHACH_HANG} element={<KhachHangPage />} />
-        <Route path={ROUTES.DAT_PHONG} element={<DatPhongPage />} />
-        
-        {/* Admin only routes */}
-        <Route
-          path={ROUTES.DICH_VU}
-          element={
-            <ProtectedRoute adminOnly>
-              <DichVuPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path={ROUTES.THONG_KE}
-          element={
-            <ProtectedRoute adminOnly>
-              <ThongKePage />
-            </ProtectedRoute>
-          }
-        />
-      </Route>
+      />
 
-      {/* Catch all */}
-      <Route path="*" element={<Navigate to={ROUTES.DASHBOARD} replace />} />
+      <Route
+        path={ROUTES.RECEPTIONIST_DASHBOARD}
+        element={
+          <ProtectedRoute allowedRoles={[ROLES.RECEPTIONIST]}>
+            <ReceptionistDashboard />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path={ROUTES.CUSTOMER_DASHBOARD}
+        element={
+          <ProtectedRoute allowedRoles={[ROLES.CUSTOMER]}>
+            <CustomerDashboard />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route path="/" element={<Navigate to={getDefaultRoute()} replace />} />
+      <Route path="*" element={<Navigate to={getDefaultRoute()} replace />} />
     </Routes>
   );
 };
-
-export default AppRoutes;

@@ -1,87 +1,88 @@
-// AuthContext.tsx
-import React, { createContext, useState, useEffect, ReactNode } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { authApi } from '../api';
-import { AuthContextType, UserInfo, LoginRequest } from '../types';
-import { STORAGE_KEYS, ROLES, ROUTES, MESSAGES } from '../constants';
+import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
+import { authApi } from '../api/auth';
+import { storage } from '../utils/storage';
+import type { User, LoginRequest, RegisterRequest } from '../types';
 
-export const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-interface AuthProviderProps {
-  children: ReactNode;
+interface AuthContextType {
+  user: User | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  login: (credentials: LoginRequest) => Promise<void>;
+  register: (data: RegisterRequest) => Promise<void>;
+  logout: () => void;
+  updateUser: (user: User) => void;
 }
 
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<UserInfo | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Khôi phục session từ localStorage
-    const savedToken = localStorage.getItem(STORAGE_KEYS.TOKEN);
-    const savedUser = localStorage.getItem(STORAGE_KEYS.USER);
+    const initAuth = async () => {
+      const token = storage.getToken();
+      const savedUser = storage.getUser();
 
-    if (savedToken && savedUser) {
-      setToken(savedToken);
-      setUser(JSON.parse(savedUser));
-    }
-    setLoading(false);
+      if (token && savedUser) {
+        try {
+          const { user: currentUser } = await authApi.getProfile();
+          setUser(currentUser);
+          storage.setUser(currentUser);
+        } catch (error) {
+          storage.clearAll();
+          setUser(null);
+        }
+      }
+      setIsLoading(false);
+    };
+
+    initAuth();
   }, []);
 
   const login = async (credentials: LoginRequest) => {
-    try {
-      const response = await authApi.login(credentials);
-      
-      // Lưu token và user info
-      setToken(response.token);
-      setUser(response.user);
-      localStorage.setItem(STORAGE_KEYS.TOKEN, response.token);
-      localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(response.user));
+    const response = await authApi.login(credentials);
+    storage.setToken(response.token);
+    storage.setUser(response.user);
+    setUser(response.user);
+  };
 
-      // Chuyển hướng về dashboard
-      navigate(ROUTES.DASHBOARD);
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || MESSAGES.LOGIN_FAILED);
-    }
+  const register = async (data: RegisterRequest) => {
+    await authApi.register(data);
   };
 
   const logout = () => {
-    setToken(null);
+    storage.clearAll();
     setUser(null);
-    localStorage.removeItem(STORAGE_KEYS.TOKEN);
-    localStorage.removeItem(STORAGE_KEYS.USER);
-    navigate(ROUTES.LOGIN);
+    authApi.logout().catch(() => {});
   };
 
-  const isAdmin = (): boolean => {
-    return user?.vaiTro === ROLES.ADMIN;
+  const updateUser = (updatedUser: User) => {
+    setUser(updatedUser);
+    storage.setUser(updatedUser);
   };
 
-  const isLeTan = (): boolean => {
-    return user?.vaiTro === ROLES.LE_TAN;
-  };
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        isAuthenticated: !!user,
+        isLoading,
+        login,
+        register,
+        logout,
+        updateUser,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+};
 
-  const value: AuthContextType = {
-    user,
-    token,
-    isAuthenticated: !!token,
-    login,
-    logout,
-    isAdmin,
-    isLeTan,
-  };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Đang tải...</p>
-        </div>
-      </div>
-    );
+export const useAuth = (): AuthContextType => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within AuthProvider');
   }
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return context;
 };

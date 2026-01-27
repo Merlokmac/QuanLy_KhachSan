@@ -154,4 +154,93 @@ GO
 
 
 
+-- ===============================================
+-- CẬP NHẬT DATABASE CHO HỆ THỐNG QUẢN LÝ KHÁCH SẠN
+-- ===============================================
 
+-- -- 1. Thêm vai trò Khách hàng
+-- INSERT INTO VaiTro (MaVaiTro, TenVaiTro) 
+-- VALUES (3, N'Khách hàng');
+-- GO
+
+-- -- 2. Cập nhật bảng KhachHang - thêm liên kết tài khoản
+-- ALTER TABLE KhachHang 
+-- ADD MaTaiKhoan INT NULL,
+--     Email NVARCHAR(100) NULL,
+--     DiaChi NVARCHAR(255) NULL;
+-- GO
+
+-- ALTER TABLE KhachHang 
+-- ADD CONSTRAINT FK_KhachHang_TaiKhoan 
+-- FOREIGN KEY (MaTaiKhoan) REFERENCES TaiKhoan(MaTaiKhoan);
+-- GO
+
+-- -- 3. Cập nhật bảng DatPhong - thêm trạng thái
+-- ALTER TABLE DatPhong 
+-- ADD TrangThai NVARCHAR(30) DEFAULT N'Chờ xác nhận',
+--     GhiChu NVARCHAR(500) NULL,
+--     NgayDat DATETIME DEFAULT GETDATE();
+-- GO
+
+-- -- 4. Cập nhật bảng HoaDon - thêm thông tin thanh toán
+-- ALTER TABLE HoaDon 
+-- ADD TrangThaiThanhToan NVARCHAR(30) DEFAULT N'Chưa thanh toán',
+--     PhuongThucThanhToan NVARCHAR(50) NULL,
+--     NgayThanhToan DATETIME NULL,
+--     GhiChu NVARCHAR(500) NULL;
+-- GO
+
+-- -- 5. Thêm ràng buộc CHECK cho trạng thái
+-- ALTER TABLE DatPhong 
+-- ADD CONSTRAINT CK_DatPhong_TrangThai 
+-- CHECK (TrangThai IN (N'Chờ xác nhận', N'Đã xác nhận', N'Đang ở', N'Hoàn thành', N'Đã hủy'));
+-- GO
+
+-- ALTER TABLE HoaDon 
+-- ADD CONSTRAINT CK_HoaDon_TrangThaiThanhToan 
+-- CHECK (TrangThaiThanhToan IN (N'Chưa thanh toán', N'Đã thanh toán', N'Đã hủy'));
+-- GO
+
+-- ALTER TABLE HoaDon 
+-- ADD CONSTRAINT CK_HoaDon_PhuongThucThanhToan 
+-- CHECK (PhuongThucThanhToan IN (N'Tiền mặt', N'Chuyển khoản', N'Thẻ', NULL));
+-- GO
+
+-- -- 6. Tạo index để tăng hiệu suất truy vấn
+-- CREATE INDEX IX_DatPhong_TrangThai ON DatPhong(TrangThai);
+-- CREATE INDEX IX_DatPhong_NgayNhan ON DatPhong(NgayNhan);
+-- CREATE INDEX IX_HoaDon_TrangThaiThanhToan ON HoaDon(TrangThaiThanhToan);
+-- CREATE INDEX IX_KhachHang_MaTaiKhoan ON KhachHang(MaTaiKhoan);
+-- GO
+
+-- -- 7. Cập nhật dữ liệu mẫu cho các bản ghi hiện có
+-- UPDATE DatPhong 
+-- SET TrangThai = N'Đang ở' 
+-- WHERE NgayNhan <= GETDATE() AND NgayTra >= GETDATE();
+
+-- UPDATE DatPhong 
+-- SET TrangThai = N'Hoàn thành' 
+-- WHERE NgayTra < GETDATE();
+
+-- UPDATE DatPhong 
+-- SET TrangThai = N'Đã xác nhận' 
+-- WHERE NgayNhan > GETDATE() AND TrangThai IS NULL;
+-- GO
+
+-- -- 8. Thêm dữ liệu mẫu tài khoản khách hàng (cho testing)
+-- INSERT INTO TaiKhoan (MaTaiKhoan, TenDangNhap, MatKhau, MaVaiTro) 
+-- VALUES 
+-- (4, 'khach1', '123456', 3),
+-- (5, 'khach2', '123456', 3);
+-- GO
+
+-- -- Liên kết với khách hàng hiện có
+-- UPDATE KhachHang SET MaTaiKhoan = 4 WHERE MaKhachHang = 1;
+-- UPDATE KhachHang SET MaTaiKhoan = 5 WHERE MaKhachHang = 2;
+-- GO
+
+-- -- Hash password '123456' = $2b$10$XYi1FzSB88lH.1ss7Vy5iu8sezLZL8a65fGgf6kD8rcL0pyWi7/TC
+
+UPDATE TaiKhoan
+SET MatKhau = '123456'
+WHERE TenDangNhap = 'admin';

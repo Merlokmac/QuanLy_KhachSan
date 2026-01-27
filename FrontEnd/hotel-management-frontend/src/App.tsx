@@ -1,9 +1,8 @@
-import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
-import AppRoutes from './routes/AppRoutes';
+import { AppRoutes } from './routes/AppRoutes';
 
-const App: React.FC = () => {
+function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
@@ -11,6 +10,6 @@ const App: React.FC = () => {
       </AuthProvider>
     </BrowserRouter>
   );
-};
+}
 
 export default App;

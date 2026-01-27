@@ -1,71 +1,58 @@
-// index.ts - Export all types
-export * from './auth.types';
-export * from './common.types';
-export * from './phong.types';
-
-// khachhang.types.ts
-export interface KhachHang {
-  MaKH: number;
-  HoTen: string;
-  CCCD: string;
-  SoDienThoai: string;
+export interface User {
+  AccountID: number;
+  Username: string;
+  RoleID: number;
+  RoleName: string;
+  FullName: string;
+  EmployeeID?: number;
+  CustomerID?: number;
 }
 
-export interface KhachHangFormData {
-  HoTen: string;
-  CCCD: string;
-  SoDienThoai: string;
+export interface AuthResponse {
+  message: string;
+  token: string;
+  user: User;
 }
 
-// datphong.types.ts
-export interface DatPhong {
-  MaDatPhong: number;
-  MaPhong: number;
-  MaKH: number;
-  NgayNhan: string;
-  NgayTra: string;
-  TrangThai: 'Đã đặt' | 'Đang ở' | 'Hoàn thành' | 'Đã huỷ';
-  TenKhachHang?: string;
-  SoPhong?: string;
+export interface LoginRequest {
+  Username: string;
+  Password: string;
 }
 
-export interface DatPhongFormData {
-  MaPhong: number;
-  MaKH: number;
-  NgayNhan: string;
-  NgayTra: string;
-  TrangThai: string;
+export interface RegisterRequest {
+  Username: string;
+  Password: string;
+  ConfirmPassword: string;
+  FullName: string;
+  IDCardNumber: string;
+  PhoneNumber: string;
+  Email?: string;
+  DateOfBirth?: string;
+  Address?: string;
 }
 
-// dichvu.types.ts
-export interface DichVu {
-  MaDichVu: number;
-  TenDichVu: string;
-  Gia: number;
+export interface ApiError {
+  message: string;
+  error?: string;
 }
 
-export interface DichVuFormData {
-  TenDichVu: string;
-  Gia: number;
+export interface Role {
+  RoleID: number;
+  RoleName: string;
+  Description?: string;
 }
 
-// thongke.types.ts
-export interface ThongKeDashboard {
-  tongPhong: number;
-  phongTrong: number;
-  phongDangO: number;
-  tongKhachHang: number;
-  tongDatPhong: number;
-  doanhThuThang: number;
-}
-
-export interface DoanhThuTheoThang {
-  thang: string;
-  doanhThu: number;
-}
-
-export interface TyLePhong {
-  loaiPhong: string;
-  soLuong: number;
-  tyLe: number;
+export interface Account {
+  AccountID: number;
+  Username: string;
+  RoleID: number;
+  RoleName: string;
+  IsActive: boolean;
+  CreatedDate: string;
+  EmployeeID?: number;
+  EmployeeName?: string;
+  EmployeePhone?: string;
+  CustomerID?: number;
+  CustomerName?: string;
+  CustomerPhone?: string;
 }
